@@ -21,11 +21,13 @@ rag-app/
 │   ├── ingest.py          # PDF ingestion and vector store creation
 │   └── rag_query.py       # RAG query engine
 ├── data/                  # Input PDF files
+├── knowledge_base/        # Alternative data directory (legacy)
 ├── output/                # Query results and vector database
 │   ├── chroma_db/        # ChromaDB vector store
 │   └── results.txt       # Automated query results
 ├── run.py                # Main entry point script
 ├── .env                  # API keys (not in git)
+├── .env.example          # Example environment variables
 ├── pyproject.toml        # Project dependencies
 └── README.md             # This file
 ```
@@ -42,16 +44,24 @@ uv sync
 
 ### 2. Configure API Keys
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root with the required API keys:
 
 ```env
 JINA_API_KEY=your_jina_api_key_here
 GROQ_API_KEY=your_groq_api_key_here
 ```
 
+**Optional API keys** (for alternative LLM/embedding providers):
+```env
+GOOGLE_API_KEY=your_google_api_key_here
+HUGGINGFACE_API_KEY=your_huggingface_api_key_here
+```
+
 **Get your API keys:**
-- **Jina AI**: https://jina.ai/embeddings/ (free tier available)
-- **Groq**: https://console.groq.com/keys (free tier with generous limits)
+- **Jina AI** (required): https://jina.ai/embeddings/ (free tier available)
+- **Groq** (required): https://console.groq.com/keys (free tier with generous limits)
+- **Google AI** (optional): https://ai.google.dev/ (for Gemini models)
+- **Hugging Face** (optional): https://huggingface.co/settings/tokens (for HF models)
 
 ### 3. Add Your PDF Documents
 
@@ -59,7 +69,12 @@ Place your PDF files in the `data/` directory.
 
 ## Usage
 
-The application has three modes:
+The application has three modes. When you run the script, it will display the available modes:
+
+```
+RAG Application - Running in 'automated' mode
+Available modes: --mode ingest | --mode query | --mode automated (default)
+```
 
 ### Automated Mode (Default)
 
@@ -82,6 +97,8 @@ uv run python run.py --mode ingest
 ```
 
 This creates a ChromaDB vector store in `output/chroma_db/`.
+
+**Note:** Currently, the ingest mode is configured to process `DH-Chapter2.pdf` from the `data/` directory. To process different files, modify the filename in `src/main.py` (line 12).
 
 ### Interactive Query Mode
 
@@ -142,13 +159,34 @@ Edit `src/rag_query.py` to customize:
 ## Dependencies
 
 Key dependencies (managed via `pyproject.toml`):
-- `langchain` - RAG framework
-- `langchain-groq` - Groq LLM integration
-- `langchain-chroma` - ChromaDB vector store
+
+**Core RAG Framework:**
+- `langchain` - RAG framework and orchestration
+- `langchain-core` - Core LangChain abstractions
 - `langchain-community` - Community integrations
+- `langchain-text-splitters` - Text chunking utilities
 - `chromadb` - Vector database
+- `langchain-chroma` - ChromaDB integration
+
+**LLM Integrations:**
+- `langchain-groq` - Groq LLM integration (primary)
+- `langchain-openai` - OpenAI models support
+- `langchain-google-genai` - Google Gemini models
+- `langchain-huggingface` - Hugging Face models
+
+**ML/AI Libraries:**
+- `transformers` - Hugging Face transformers
+- `torch` - PyTorch for ML models
+- `torchvision` - Computer vision utilities
+- `peft` - Parameter-efficient fine-tuning
+- `jina` - Jina AI embeddings
+
+**Utilities:**
 - `pypdf` - PDF processing
 - `python-dotenv` - Environment variable management
+- `bs4` - BeautifulSoup for HTML parsing
+- `pillow` - Image processing
+- `ruff` - Python linter and formatter
 
 ## Troubleshooting
 

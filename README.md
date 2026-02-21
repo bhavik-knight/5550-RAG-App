@@ -1,207 +1,66 @@
-# RAG Application
+# RAG Application - Nova Scotia Road Safety Expert
 
-A Retrieval-Augmented Generation (RAG) system for question-answering using PDF documents.
+A Retrieval-Augmented Generation (RAG) system specialized in the Nova Scotia Driver's Handbook. This application features a multi-layered security architecture and an evaluation engine to ensure faithful and safe answers.
 
 ## Architecture
 
-This RAG system uses:
-- **Embeddings**: Jina AI (`jina-embeddings-v4`) - State-of-the-art embedding model
-- **LLM**: Meta Llama-3.3-70B via Groq - Fast, free, and excellent for RAG tasks
-- **Vector Store**: ChromaDB - Efficient similarity search
-- **Framework**: LangChain - For orchestrating the RAG pipeline
+- **Embeddings**: Jina AI (`jina-embeddings-v4`)
+- **LLM**: Meta Llama-3.3-70B via Groq
+- **Vector Store**: ChromaDB
+- **Framework**: LangChain
 
-## Project Structure
+## Key Security Features
 
-```
-rag-app/
-├── src/                    # Source code directory
-│   ├── main.py            # Main application entry point
-│   ├── config.py          # Configuration and API key management
-│   ├── embedder.py        # Jina embedding model wrapper
-│   ├── ingest.py          # PDF ingestion and vector store creation
-│   └── rag_query.py       # RAG query engine
-├── data/                  # Input PDF files
-├── knowledge_base/        # Alternative data directory (legacy)
-├── output/                # Query results and vector database
-│   ├── chroma_db/        # ChromaDB vector store
-│   └── results.txt       # Automated query results
-├── run.py                # Main entry point script
-├── .env                  # API keys (not in git)
-├── .env.example          # Example environment variables
-├── pyproject.toml        # Project dependencies
-└── README.md             # This file
-```
+### Prompt Injection Defenses
+We have implemented **5 layers of defense** against prompt injection and instruction leakage:
 
-## Setup
+1.  **System Prompt Hardening**: A strict internal persona that mandates topical adherence and forbids the disclosure of internal instructions.
+2.  **Input Sanitization**: A regex-based scanner that detects and blocks common injection patterns (e.g., "ignore previous instructions", "print your system prompt").
+3.  **Instruction-Data Separation**: All retrieved context is wrapped in clear `<retrieved_context>` delimiters to help the LLM distinguish between system instructions and untrusted data.
+4.  **Output Integrity Validation**: The system scans LLM responses for fragments of the system prompt or indicators that the AI has adopted a prohibited persona.
+5.  **Jailbreak Refusal**: Detection of jailbreak keywords (e.g., "DAN") and standardized refusals for non-compliant requests.
 
-### 1. Install Dependencies
+### Security Guardrails
+- **PII Sanitization**: Automatically redacts emails, phone numbers, and license plates from user queries.
+- **Off-Topic Filtering**: Blocks queries unrelated to Nova Scotia road safety using an adaptive keyword whitelist.
+- **Execution Limits**: Enforces a strict **30-second timeout** on LLM calls to prevent resource exhaustion.
+- **Retrieval Confidence**: Validates that retrieved document chunks meet a minimum similarity threshold.
 
-This project uses `uv` for dependency management:
+## Evaluation Metrics
 
-```bash
-uv sync
-```
+To ensure system reliability, we use two primary evaluation signals:
 
-### 2. Configure API Keys
+- **Faithfulness Check**: An LLM-based evaluator (or heuristic fallback) that compares the final answer against the retrieved context to detect hallucinations.
+- **Retrieval Relevance**: Tracking the similarity scores of retrieved chunks to ensure the most pertinent information is used.
 
-Create a `.env` file in the project root with the required API keys:
-
-```env
-JINA_API_KEY=your_jina_api_key_here
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-**Optional API keys** (for alternative LLM/embedding providers):
-```env
-GOOGLE_API_KEY=your_google_api_key_here
-HUGGINGFACE_API_KEY=your_huggingface_api_key_here
-```
-
-**Get your API keys:**
-- **Jina AI** (required): https://jina.ai/embeddings/ (free tier available)
-- **Groq** (required): https://console.groq.com/keys (free tier with generous limits)
-- **Google AI** (optional): https://ai.google.dev/ (for Gemini models)
-- **Hugging Face** (optional): https://huggingface.co/settings/tokens (for HF models)
-
-### 3. Add Your PDF Documents
-
-Place your PDF files in the `data/` directory.
+### Interesting Findings
+- **The "Joke" Edge Case**: Queries like "Tell me a joke about driving" initially bypassed off-topic filters because they contained valid keywords ("driving"). However, the **Hardened System Prompt** correctly identifies these as out-of-scope during generation, resulting in a safe refusal.
 
 ## Usage
 
-The application has three modes. When you run the script, it will display the available modes:
+### Setup
+1.  **Install**: `uv sync`
+2.  **Config**: Create `.env` with `JINA_API_KEY` and `GROQ_API_KEY`.
+3.  **Data**: Place `DH-Chapter2.pdf` in the `data/` directory.
 
+### Commands
+- **Ingest**: `uv run python3 main.py --mode ingest`
+- **Interactive**: `uv run python3 main.py --mode query`
+- **Automated Workload**: `uv run python3 main.py --mode automated`
+
+Automated test results are stored in `output/results.txt`.
+
+## Project Structure
+```text
+rag-app/
+├── main.py                # Unified entry point
+├── src/
+│   ├── security/          # Modular security package
+│   ├── evaluation.py      # Faithfulness and performance tracking
+│   ├── rag_query.py       # Production RAG pipeline
+│   ├── config.py          # Central configuration
+│   └── ...
+├── data/                  # Input PDFs
+├── output/                # DB and results.txt
+└── logs/                  # security.log
 ```
-RAG Application - Running in 'automated' mode
-Available modes: --mode ingest | --mode query | --mode automated (default)
-```
-
-### Automated Mode (Default)
-
-Run predefined test queries and save results:
-
-```bash
-uv run python run.py
-# or explicitly:
-uv run python run.py --mode automated
-```
-
-Results are saved to `output/results.txt`.
-
-### Ingest Mode
-
-Process PDF documents and create the vector database:
-
-```bash
-uv run python run.py --mode ingest
-```
-
-This creates a ChromaDB vector store in `output/chroma_db/`.
-
-**Note:** Currently, the ingest mode is configured to process `DH-Chapter2.pdf` from the `data/` directory. To process different files, modify the filename in `src/main.py` (line 12).
-
-### Interactive Query Mode
-
-Ask questions interactively:
-
-```bash
-uv run python run.py --mode query
-```
-
-Type your questions and get answers with source citations. Type 'exit' to quit.
-
-## How It Works
-
-1. **Ingestion** (`ingest.py`):
-   - Loads PDF documents from the `data/` directory
-   - Splits text into chunks (1000 chars with 200 char overlap)
-   - Creates embeddings using Jina AI
-   - Stores in ChromaDB vector database
-
-2. **Query** (`rag_query.py`):
-   - Retrieves relevant document chunks based on query similarity
-   - Sends context to Llama-3.3-70B for answer generation
-   - Returns answer with source citations (filename and page numbers)
-   - If answer is "I don't know", no sources are shown
-
-## Features
-
-- ✅ **Smart Citations**: Automatically extracts and formats source citations
-- ✅ **Clean Output**: LLM answers without embedded citations (sources listed separately)
-- ✅ **Unknown Handling**: Returns "I don't know" for questions outside the knowledge base
-- ✅ **Fast Inference**: Groq provides extremely fast LLM responses
-- ✅ **Free Tier**: Both Jina AI and Groq offer generous free tiers
-
-## Example Output
-
-```
-Question: What is Crosswalk guards?
-Answer: Crosswalk guards direct the movement of children along or across highways going to or from school. They signal drivers to stop by holding up a stop sign facing the vehicle. Drivers must obey crossing guards appointed and employed for this purpose.
-Sources: DH-Chapter2.pdf (Page 7), DH-Chapter2.pdf (Page 6), DH-Chapter2.pdf (Page 3)
-```
-
-## Configuration
-
-Edit `src/config.py` to customize:
-- Data directory path
-- Output directory path
-- API key validation
-
-Edit `src/ingest.py` to customize:
-- Chunk size and overlap
-- PDF processing parameters
-
-Edit `src/rag_query.py` to customize:
-- LLM model and parameters
-- Retrieval settings
-- Prompt template
-
-## Dependencies
-
-Key dependencies (managed via `pyproject.toml`):
-
-**Core RAG Framework:**
-- `langchain` - RAG framework and orchestration
-- `langchain-core` - Core LangChain abstractions
-- `langchain-community` - Community integrations
-- `langchain-text-splitters` - Text chunking utilities
-- `chromadb` - Vector database
-- `langchain-chroma` - ChromaDB integration
-
-**LLM Integrations:**
-- `langchain-groq` - Groq LLM integration (primary)
-- `langchain-openai` - OpenAI models support
-- `langchain-google-genai` - Google Gemini models
-- `langchain-huggingface` - Hugging Face models
-
-**ML/AI Libraries:**
-- `transformers` - Hugging Face transformers
-- `torch` - PyTorch for ML models
-- `torchvision` - Computer vision utilities
-- `peft` - Parameter-efficient fine-tuning
-- `jina` - Jina AI embeddings
-
-**Utilities:**
-- `pypdf` - PDF processing
-- `python-dotenv` - Environment variable management
-- `bs4` - BeautifulSoup for HTML parsing
-- `pillow` - Image processing
-- `ruff` - Python linter and formatter
-
-## Troubleshooting
-
-**Missing API Keys Error:**
-- Ensure your `.env` file exists and contains valid API keys
-- Check that the `.env` file is in the project root directory
-
-**Vector Store Not Found:**
-- Run ingestion first: `uv run python run.py --mode ingest`
-- Ensure PDF files are in the `data/` directory
-
-**Import Errors:**
-- Run `uv sync` to install all dependencies
-- Ensure you're running from the project root directory
-
-## License
-
-MIT License - See LICENSE file for details

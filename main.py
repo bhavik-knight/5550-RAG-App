@@ -68,23 +68,27 @@ def run_automated_execution(engine):
                         }
                         break
             
-            # Strict format for results.txt
-            faith_score = res.get('eval', {}).get('faithfulness', 'N/A')
+            # Syncing results.txt with terminal output
+            formatted_res = RAGQueryEngine.format_result(res)
             
-            output_entry = (
-                f"Query: {res['query']}\n"
+            # Adding extra metadata for complete logging in findings
+            metadata = (
                 f"Guardrails Triggered: {', '.join(res.get('guardrails_triggered', [])) if res.get('guardrails_triggered') else 'None'}\n"
                 f"Error Code: {res.get('error_code', 'None')}\n"
                 f"Retrieved Chunks: {res.get('chunks', [])}\n"
-                f"Answer: {res['answer']}\n"
-                f"Faithfulness/Eval Score: {faith_score}\n"
-                f"{'-' * 120}\n"
+                f"{'=' * 120}\n"
             )
-            f.write(output_entry)
-            print(RAGQueryEngine.format_result(res))
+            
+            f.write(formatted_res + metadata)
+            print(formatted_res)
+            
+            
+        # Append final summary to the file
+        summary = engine.evaluator.generate_eval_summary()
+        f.write("\n" + summary)
             
     print(f"\nResults saved to {results_path}")
-    print(engine.evaluator.generate_eval_summary())
+    print(summary)
 
 def run_interactive(engine):
     print("\n--- Starting Interactive RAG System ---")

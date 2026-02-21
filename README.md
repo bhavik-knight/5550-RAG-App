@@ -58,6 +58,8 @@ Automated test results are stored in `output/results.txt`.
 ```text
 rag-app/
 ├── main.py                # Unified entry point
+├── knowledge_base/        # Vector store and embeddings
+│   └── chroma_db/
 ├── src/
 │   ├── security/          # Modular security package (5 defenses)
 │   ├── evaluation.py      # Numerical faithfulness tracking
@@ -65,6 +67,6 @@ rag-app/
 │   ├── config.py          # Central configuration
 │   └── ...
 ├── data/                  # Input PDFs
-├── output/                # DB and results.txt
+├── output/                # results.txt (Test results)
 └── logs/                  # security.log (Audit trail)
 ```

@@ -13,8 +13,7 @@ from langchain_openai import ChatOpenAI
 
 class RAGQueryEngine:
     def __init__(self):
-        self.output_dir = Config.OUTPUT_DIR
-        self.chroma_db_dir = self.output_dir / "chroma_db"
+        self.chroma_db_dir = Config.CHROMA_DB_DIR
         self.vectorstore = None
         self.retriever = None
         self.chain = None

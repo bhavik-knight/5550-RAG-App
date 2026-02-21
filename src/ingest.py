@@ -9,8 +9,7 @@ from src.config import Config
 class KnowledgeBaseIngestor:
     def __init__(self, data_file_name: str):
         self.data_path = Config.DATA_DIR / data_file_name
-        self.output_dir = Config.OUTPUT_DIR
-        self.chroma_db_dir = Config.OUTPUT_DIR / "chroma_db"
+        self.chroma_db_dir = Config.CHROMA_DB_DIR
         
 
     def setup_directories(self):

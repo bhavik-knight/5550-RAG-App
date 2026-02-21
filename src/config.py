@@ -16,6 +16,8 @@ class Config:
     BASE_DIR = Path(__file__).parent.parent
     DATA_DIR = BASE_DIR / "data"
     OUTPUT_DIR = BASE_DIR / "output"
+    KB_DIR = BASE_DIR / "knowledge_base"
+    CHROMA_DB_DIR = KB_DIR / "chroma_db"
     
     # Security Guardrail Settings
     MAX_QUERY_LENGTH = 500

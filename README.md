@@ -3,8 +3,8 @@
 A Retrieval-Augmented Generation (RAG) system specialized in the Nova Scotia Driver's Handbook. This application features a multi-layered security architecture and an evaluation engine to ensure faithful and safe answers.
 
 ## Quick Links
-- **Test Results**: [output/results.txt](file:///home/bhavik/Dropbox/edu/smu/winter/mobile_dev/rag-app/output/results.txt)
-- **Security Audit Log**: [logs/security.log](file:///home/bhavik/Dropbox/edu/smu/winter/mobile_dev/rag-app/logs/security.log)
+- **Test Results**: [output/results.txt]
+- **Security Audit Log**: [logs/security.log]
 
 ## Architecture
 

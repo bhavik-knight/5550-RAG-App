@@ -6,6 +6,8 @@ RETRIEVAL_EMPTY = "RETRIEVAL_EMPTY"
 LLM_TIMEOUT = "LLM_TIMEOUT"
 POLICY_BLOCK = "POLICY_BLOCK"
 
+
 class LLMTimeoutError(Exception):
     """Custom exception for LLM processing timeouts."""
+
     pass

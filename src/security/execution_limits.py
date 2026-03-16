@@ -4,6 +4,7 @@ from functools import wraps
 from src.config import Config
 from src.security.errors import LLM_TIMEOUT, LLMTimeoutError
 
+
 class ExecutionLimits:
     """
     Handles timeouts and other execution-related constraints.
@@ -11,11 +12,14 @@ class ExecutionLimits:
 
     @staticmethod
     def _handle_timeout(signum, frame):
-        raise LLMTimeoutError(f"LLM processing exceeded timeout of {Config.LLM_TIMEOUT_SECONDS} seconds")
+        raise LLMTimeoutError(
+            f"LLM processing exceeded timeout of {Config.LLM_TIMEOUT_SECONDS} seconds"
+        )
 
     @classmethod
     def enforce_timeout(cls, func):
         """Decorator to enforce execution timeout on a function."""
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             # Register signal handler
@@ -29,6 +33,7 @@ class ExecutionLimits:
                 raise
             finally:
                 signal.alarm(0)  # Disable alarm
+
         return wrapper
 
     @classmethod

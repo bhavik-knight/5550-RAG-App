@@ -19,7 +19,7 @@ dependencies = [
     "torchvision",
     "pillow>=10.0.0",
     "langchain-openai>=1.1.9",
-    "pypdf>=6.7.0",
+    "pypdf>=6.10.2",
     "jina>=3.34.0",
     "openai>=2.20.0",
     "langchain-google-genai>=4.2.0",

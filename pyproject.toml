@@ -18,7 +18,7 @@ dependencies = [
     "peft>=0.15.2",
     "torchvision",
     "pillow>=10.0.0",
-    "langchain-openai>=1.1.9",
+    "langchain-openai>=1.1.14",
     "pypdf>=6.7.0",
     "jina>=3.34.0",
     "openai>=2.20.0",
